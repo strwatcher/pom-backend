@@ -1,0 +1,9 @@
+session_name: "pom-backend"
+windows:
+  - window_name: editor
+    shell_command_before: nvim
+  - window_name: shell
+  - window_name: vcs
+    shell_command_before: lazygit
+  - window_name: runner
+    shell_command_before: bun dev-container

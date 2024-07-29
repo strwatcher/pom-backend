@@ -3,13 +3,29 @@
   "version": "1.0.50",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "bun run --watch src/index.ts"
+    "dev": "bun run --watch src/index.ts",
+    "dev-container": "docker compose -f ./development/docker-compose.yml --env-file ./.env up -d",
+    "dev-container:restart": "docker compose -f ./development/docker-compose.yml --env-file ./.env restart",
+    "generate": "drizzle-kit generate",
+    "migrate": "drizzle-kit migrate"
   },
   "dependencies": {
-    "elysia": "latest"
+    "@elysiajs/swagger": "^1.1.0",
+    "@lucia-auth/adapter-drizzle": "^1.0.7",
+    "@paralleldrive/cuid2": "^2.2.2",
+    "drizzle-orm": "^0.32.1",
+    "drizzle-typebox": "^0.1.1",
+    "elysia": "latest",
+    "fp-ts": "^2.16.9",
+    "lucia": "^3.2.0",
+    "pg": "^8.12.0",
+    "ts-pattern": "^5.2.0"
   },
   "devDependencies": {
-    "bun-types": "latest"
+    "@types/pg": "^8.11.6",
+    "@unsplash/ts-namespace-import-plugin": "^1.0.0",
+    "bun-types": "latest",
+    "drizzle-kit": "^0.23.0"
   },
   "module": "src/index.js"
 }

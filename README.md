@@ -1,15 +1,21 @@
-# Elysia with Bun runtime
-
-## Getting Started
-To get started with this template, simply paste this command into your terminal:
-```bash
-bun create elysia ./elysia-example
-```
+# Elysia backend with fp-ts as data-flow layer
 
 ## Development
-To start the development server run:
-```bash
-bun run dev
+
+### Copy .env.example to .env, then start dev-environment
+
+```sh
+bun dev-container
 ```
 
-Open http://localhost:3000/ with your browser to see the result.
+### Generate tables for database
+
+```sh
+bun generate
+```
+
+### Migrate database after generating tables (inside of container)
+
+```sh
+bun migrate
+```
