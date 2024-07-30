@@ -21,15 +21,20 @@ type AuthParams = {
   usersService: UsersService;
 };
 
-const generatePasswordHash =
-  (
-    password: string,
-  ): RTE.ReaderTaskEither<typeof Bun.password.hash, Error, string> =>
-  (hashFunction) =>
-    TE.tryCatch(
-      () => hashFunction(password),
-      (reason) => new Error(String(reason)),
-    );
+type GeneratePasswordHashParams = {
+  password: string;
+  hashFunction: typeof Bun.password.hash;
+};
+
+const generatePasswordHash: RTE.ReaderTaskEither<
+  GeneratePasswordHashParams,
+  Error,
+  string
+> = ({ password, hashFunction }) =>
+  TE.tryCatch(
+    () => hashFunction(password),
+    (reason) => new Error(String(reason)),
+  );
 
 type CreateSessionParams = {
   userId: string;
@@ -62,7 +67,10 @@ const signUp: RTE.ReaderTaskEither<
         B.matchW(
           () =>
             pipe(
-              generatePasswordHash(body.password)(Bun.password.hash),
+              generatePasswordHash({
+                password: body.password,
+                hashFunction: Bun.password.hash,
+              }),
               TE.flatMap<string, Error, string>((password) =>
                 usersService.createUser({
                   database,
