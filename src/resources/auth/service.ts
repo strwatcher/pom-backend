@@ -2,16 +2,23 @@ import { Database } from "@/shared/database/drizzle";
 import { Lucia } from "lucia";
 import {
   AuthUserDto,
+  UserNotFoundError,
   UserWithThisNameAlreadyExistsError,
 } from "../users/model";
 import { UsersService } from "../users/service";
-import { pipe } from "fp-ts/function";
+import { flow, pipe } from "fp-ts/function";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
 import * as B from "fp-ts/boolean";
+import * as O from "fp-ts/Option";
 import { createId } from "@paralleldrive/cuid2";
-import { SerializedSessionCookie } from "./model";
+import { PasswordIsIncorrectError, SerializedSessionCookie } from "./model";
+import {
+  createLuciaSession,
+  generatePasswordHash,
+  verifyPassword,
+} from "./lib";
 
 type AuthParams = {
   database: Database;
@@ -20,40 +27,6 @@ type AuthParams = {
 
   usersService: UsersService;
 };
-
-type GeneratePasswordHashParams = {
-  password: string;
-  hashFunction: typeof Bun.password.hash;
-};
-
-const generatePasswordHash: RTE.ReaderTaskEither<
-  GeneratePasswordHashParams,
-  Error,
-  string
-> = ({ password, hashFunction }) =>
-  TE.tryCatch(
-    () => hashFunction(password),
-    (reason) => new Error(String(reason)),
-  );
-
-type CreateSessionParams = {
-  userId: string;
-  lucia: Lucia;
-};
-
-const createLuciaSession: RTE.ReaderTaskEither<
-  CreateSessionParams,
-  Error,
-  string
-> = ({ lucia, userId }) =>
-  pipe(
-    TE.tryCatch(
-      () => lucia.createSession(userId, {}),
-      (cause) => new Error(String(cause)),
-    ),
-    TE.map((session) => lucia.createSessionCookie(session.id)),
-    TE.map((cookie) => cookie.serialize()),
-  );
 
 const signUp: RTE.ReaderTaskEither<
   AuthParams,
@@ -90,7 +63,34 @@ const signUp: RTE.ReaderTaskEither<
     ),
   );
 
+const signIn: RTE.ReaderTaskEither<AuthParams, Error, string> = ({
+  usersService,
+  body,
+  database,
+  lucia,
+}) =>
+  pipe(
+    usersService.getUserByName({ name: body.name, database }),
+    TE.flatMap(
+      O.fold(
+        () => TE.left(new UserNotFoundError(body.name)),
+        (user) =>
+          verifyPassword({
+            verify: Bun.password.verify,
+            password: body.password,
+            user,
+          }),
+      ),
+    ),
+    TE.flatMap(
+      O.fold(
+        () => TE.left(new PasswordIsIncorrectError()),
+        (user) => createLuciaSession({ lucia, userId: user.id }),
+      ),
+    ),
+  );
+
 export const authService = {
   signUp,
-  signIn: async ({ lucia, database, body }: AuthParams) => {},
+  signIn,
 };

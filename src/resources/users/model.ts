@@ -12,6 +12,7 @@ export const users = pgTable("users", {
 export const fullUserSchema = createSelectSchema(users);
 export const userSchema = t.Omit(fullUserSchema, ["password"]);
 
+// TODO: add password and name validation rules
 const _authUesrSchema = createInsertSchema(users);
 export const authUserSchema = t.Omit(_authUesrSchema, ["id"]);
 
@@ -24,5 +25,11 @@ export type UserAttributes = Omit<User, "id">;
 export class UserWithThisNameAlreadyExistsError extends Error {
   constructor(name: string) {
     super(`User with name "${name}" already exists`);
+  }
+}
+
+export class UserNotFoundError extends Error {
+  constructor(name: string) {
+    super(`User with name "${name}" is not found`);
   }
 }

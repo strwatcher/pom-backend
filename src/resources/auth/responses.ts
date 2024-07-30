@@ -1,7 +1,11 @@
 import * as T from "fp-ts/Task";
 import { match } from "ts-pattern";
 import { constant } from "fp-ts/lib/function";
-import { UserWithThisNameAlreadyExistsError } from "../users/model";
+import {
+  UserNotFoundError,
+  UserWithThisNameAlreadyExistsError,
+} from "../users/model";
+import { PasswordIsIncorrectError } from "./model";
 
 export const handleSignUpErrors = (error: Error) =>
   T.of(
@@ -18,7 +22,26 @@ export const handleSignUpErrors = (error: Error) =>
     ),
   );
 
-export const handleSignUpSuccess = (sessionCookie: string) =>
+export const handleSignInErrors = (error: Error) =>
+  T.of(
+    Response.json(
+      { error: error.message },
+      {
+        status: match({ error })
+          .when(
+            ({ error }) => error instanceof PasswordIsIncorrectError,
+            constant(403),
+          )
+          .when(
+            ({ error }) => error instanceof UserNotFoundError,
+            constant(404),
+          )
+          .otherwise(constant(400)),
+      },
+    ),
+  );
+
+export const handleAuthSuccess = (sessionCookie: string) =>
   T.of(
     Response.json(null, {
       status: 200,

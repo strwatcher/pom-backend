@@ -7,7 +7,11 @@ import { usersServiceProvider } from "../users/provider";
 import { flow } from "fp-ts/lib/function";
 import * as TE from "fp-ts/TaskEither";
 import { handleValidationErrors } from "@/shared/errors/validation";
-import { handleSignUpErrors, handleSignUpSuccess } from "./responses";
+import {
+  handleSignUpErrors,
+  handleAuthSuccess,
+  handleSignInErrors,
+} from "./responses";
 
 export const auth = new Elysia()
   .use(databaseProvider())
@@ -21,11 +25,18 @@ export const auth = new Elysia()
         "/sign-up",
         flow(
           authService.signUp,
-          TE.fold(handleSignUpErrors, handleSignUpSuccess),
+          TE.fold(handleSignUpErrors, handleAuthSuccess),
         ),
         { body: authUserSchema },
       )
-      .post("/sign-in", (context) => authService.signIn(context), {
-        body: authUserSchema,
-      }),
+      .post(
+        "/sign-in",
+        flow(
+          authService.signIn,
+          TE.fold(handleSignInErrors, handleAuthSuccess),
+        ),
+        {
+          body: authUserSchema,
+        },
+      ),
   );

@@ -2,7 +2,7 @@ import { Database } from "@/shared/database/drizzle";
 import { pipe } from "fp-ts/function";
 import * as TE from "fp-ts/TaskEither";
 import * as RTE from "fp-ts/ReaderTaskEither";
-import { CreateUserDto, User, users } from "./model";
+import { CreateUserDto, FullUser, users } from "./model";
 import * as O from "fp-ts/Option";
 import { DrizzleError } from "drizzle-orm";
 
@@ -14,7 +14,7 @@ type GetUserByNameParams = {
 const getUserByName: RTE.ReaderTaskEither<
   GetUserByNameParams,
   DrizzleError,
-  O.Option<User>
+  O.Option<FullUser>
 > = ({ name, database }: GetUserByNameParams) =>
   pipe(
     TE.tryCatch(
