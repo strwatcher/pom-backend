@@ -1,5 +1,5 @@
 import Elysia from "elysia";
-import { lucia } from "./lucia";
+import { lucia } from "./lib/lucia";
 import { authService } from "./service";
 
 export const luciaProvider = () => {

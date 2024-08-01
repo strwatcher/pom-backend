@@ -34,3 +34,10 @@ export class PasswordIsIncorrectError extends Error {
     this.name = "PasswordIsIncorrectError";
   }
 }
+
+export class LuciaCreateSessionError extends Error {
+  constructor(cause: unknown) {
+    super(String(cause));
+    this.name = "LuciaCreateSessionError";
+  }
+}
