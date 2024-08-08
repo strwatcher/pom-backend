@@ -1,10 +1,7 @@
 import { Database } from "@/shared/database/drizzle";
-import { pipe } from "fp-ts/function";
-import * as TE from "fp-ts/TaskEither";
-import * as RTE from "fp-ts/ReaderTaskEither";
-import { CreateUserDto, FullUser, users } from "./model";
-import * as O from "fp-ts/Option";
+import { CreateUserDto, FullUser, UserNotFoundError, users } from "./model";
 import { DrizzleError } from "drizzle-orm";
+import { constTrue, pipe, RTE, TE } from "@/shared/fp-ts";
 
 type GetUserByNameParams = {
   database: Database;
@@ -13,23 +10,23 @@ type GetUserByNameParams = {
 
 const getUserByName: RTE.ReaderTaskEither<
   GetUserByNameParams,
-  DrizzleError,
-  O.Option<FullUser>
+  DrizzleError | UserNotFoundError,
+  FullUser
 > = ({ name, database }: GetUserByNameParams) =>
-  pipe(
-    TE.tryCatch(
-      () =>
-        database.query.users.findFirst({
-          where: (users, { eq }) => eq(users.name, name),
-        }),
-      (cause: unknown) =>
-        new DrizzleError({
-          message: `Error while trying to get user by name: ${name}`,
-          cause,
-        }),
-    ),
-    TE.map(O.fromNullable),
-  );
+    pipe(
+      TE.tryCatch(
+        () =>
+          database.query.users.findFirst({
+            where: (users, { eq }) => eq(users.name, name),
+          }),
+        (cause) =>
+          new DrizzleError({
+            message: `Error while trying to get user by name: ${name}`,
+            cause,
+          }),
+      ),
+      TE.flatMap(TE.fromNullable(new UserNotFoundError(name))),
+    );
 
 type CreateUserParams = {
   database: Database;
@@ -41,17 +38,17 @@ const createUser: RTE.ReaderTaskEither<
   DrizzleError,
   string
 > = ({ createUserDto, database }: CreateUserParams) =>
-  pipe(
-    TE.tryCatch(
-      () => database.insert(users).values(createUserDto),
-      (cause: unknown) =>
-        new DrizzleError({
-          message: `Error while trying to create user`,
-          cause,
-        }),
-    ),
-    TE.map(() => createUserDto.id),
-  );
+    pipe(
+      TE.tryCatch(
+        () => database.insert(users).values(createUserDto),
+        (cause: unknown) =>
+          new DrizzleError({
+            message: `Error while trying to create user`,
+            cause,
+          }),
+      ),
+      TE.map(() => createUserDto.id),
+    );
 
 export const usersService = {
   getUserByName,
@@ -59,8 +56,8 @@ export const usersService = {
 
   isNameAlreadyTaken: (
     params: GetUserByNameParams,
-  ): TE.TaskEither<Error, boolean> =>
-    pipe(params, getUserByName, TE.map(O.isSome)),
+  ): TE.TaskEither<DrizzleError | UserNotFoundError, boolean> =>
+    pipe(params, getUserByName, TE.map(constTrue)),
 };
 
 export type UsersService = typeof usersService;

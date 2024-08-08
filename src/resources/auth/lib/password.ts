@@ -1,11 +1,26 @@
-import * as O from "fp-ts/Option";
-import * as B from "fp-ts/boolean";
 import { FullUser } from "@/resources/users/model";
+import { B, pipe, RTE, TE, E, constant } from "@/shared/fp-ts";
 
-import * as RTE from "fp-ts/ReaderTaskEither";
-import * as TE from "fp-ts/TaskEither";
-import { constant, pipe } from "fp-ts/lib/function";
-import { PasswordGenerationError, PasswordVerificationError } from "../model";
+export class PasswordGenerationError extends Error {
+  constructor(cause: unknown) {
+    super(String(cause));
+    this.name = "PasswordGenerationError";
+  }
+}
+
+export class PasswordVerificationError extends Error {
+  constructor(cause: unknown) {
+    super(String(cause));
+    this.name = "PasswordVerificationError";
+  }
+}
+
+export class PasswordIsIncorrectError extends Error {
+  constructor() {
+    super("Password is incorrect");
+    this.name = "PasswordIsIncorrectError";
+  }
+}
 
 type GeneratePasswordHashParams = {
   password: string;
@@ -30,13 +45,18 @@ type VerifyPasswordParams = {
 
 export const verifyPassword: RTE.ReaderTaskEither<
   VerifyPasswordParams,
-  Error,
-  O.Option<FullUser>
+  PasswordVerificationError | PasswordIsIncorrectError,
+  FullUser
 > = ({ verify, password, user }) =>
     pipe(
       TE.tryCatch(
         () => verify(password, user.password),
         (cause) => new PasswordVerificationError(cause),
       ),
-      TE.map(B.fold(constant(O.none), constant(O.some(user)))),
+      TE.flatMapEither(
+        B.match(
+          constant(E.left(new PasswordIsIncorrectError())),
+          constant(E.right(user)),
+        ),
+      ),
     );

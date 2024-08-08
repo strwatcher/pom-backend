@@ -1,6 +1,5 @@
 import Elysia from "elysia";
-import { pipe } from "fp-ts/lib/function";
-import * as A from "fp-ts/Array";
+import { A, pipe } from "@/shared/fp-ts";
 
 export const handleValidationErrors = new Elysia().onError(
   { as: "global" },

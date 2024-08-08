@@ -4,14 +4,13 @@ import { authUserSchema } from "@/resources/users/model";
 import { databaseProvider } from "@/shared/database/drizzle";
 import { authService } from "./service";
 import { usersServiceProvider } from "../users/provider";
-import { flow } from "fp-ts/lib/function";
-import * as TE from "fp-ts/TaskEither";
 import { handleValidationErrors } from "@/shared/errors/validation";
 import {
   handleSignUpErrors,
   handleAuthSuccess,
   handleSignInErrors,
 } from "./responses";
+import { flow, TE } from "@/shared/fp-ts";
 
 export const auth = new Elysia()
   .use(databaseProvider())

@@ -1,11 +1,10 @@
-import * as T from "fp-ts/Task";
 import { match } from "ts-pattern";
-import { constant } from "fp-ts/lib/function";
 import {
   UserNotFoundError,
   UserWithThisNameAlreadyExistsError,
 } from "../users/model";
-import { PasswordIsIncorrectError } from "./model";
+import { PasswordIsIncorrectError } from "./lib";
+import { constant, T } from "@/shared/fp-ts";
 
 export const handleSignUpErrors = (error: Error) =>
   T.of(
