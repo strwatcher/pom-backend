@@ -1,24 +1,24 @@
-import Elysia from "elysia";
-import { lucia } from "./lib/lucia";
-import { setupAuthService } from "./service";
-import { usersServiceProvider } from "../users/provider";
-import { createIdProvider } from "@/shared/id";
-import { passwordServiceProvider } from "@/shared/password";
+import { usersServiceProvider } from '../users/provider';
+import { lucia } from './lib/lucia';
+import { setupAuthService } from './service';
+import { createIdProvider } from '@/shared/id';
+import { passwordServiceProvider } from '@/shared/password';
+import Elysia from 'elysia';
 
 export const luciaProvider = () => {
-  return new Elysia().decorate("lucia", lucia);
+    return new Elysia().decorate('lucia', lucia);
 };
 
 export const authServiceProvider = () => {
-  return new Elysia()
-    .use(usersServiceProvider())
-    .use(passwordServiceProvider())
-    .use(createIdProvider())
-    .use(luciaProvider())
-    .derive((context) => {
-      return {
-        authService: setupAuthService(context),
-      };
-    })
-    .as("plugin");
+    return new Elysia()
+        .use(usersServiceProvider())
+        .use(passwordServiceProvider())
+        .use(createIdProvider())
+        .use(luciaProvider())
+        .derive((context) => {
+            return {
+                authService: setupAuthService(context),
+            };
+        })
+        .as('plugin');
 };

@@ -1,6 +1,6 @@
-import Elysia from "elysia";
-import { db } from "./connection";
+import { db } from './connection';
+import Elysia from 'elysia';
 
-export * from "./connection";
+export * from './connection';
 
-export const databaseProvider = () => new Elysia().decorate("database", db);
+export const databaseProvider = () => new Elysia().decorate('database', db);
