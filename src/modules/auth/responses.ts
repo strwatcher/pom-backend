@@ -3,7 +3,7 @@ import {
   UserNotFoundError,
   UserWithThisNameAlreadyExistsError,
 } from "../users/model";
-import { constant, T } from "@/shared/fp-ts";
+import { T, constant } from "@/shared/fp-ts";
 import { PasswordIsIncorrectError } from "@/shared/password/model";
 
 export const handleSignUpErrors = (error: Error) =>

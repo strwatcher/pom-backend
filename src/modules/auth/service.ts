@@ -2,8 +2,8 @@ import {
   AuthUserDto,
   UserNotFoundError,
   UserWithThisNameAlreadyExistsError,
-} from "@/resources/users/model";
-import { pipe, RTE, TE } from "@/shared/fp-ts";
+} from "@/modules/users/model";
+import { RTE, TE, pipe } from "@/shared/fp-ts";
 import { DrizzleError } from "drizzle-orm";
 import { UsersService } from "../users/service";
 import { Lucia } from "lucia";
@@ -73,14 +73,14 @@ export const createLuciaSession: RTE.ReaderTaskEither<
   LuciaCreateSessionError,
   string
 > = ({ lucia, userId }) =>
-  pipe(
-    TE.tryCatch(
-      () => lucia.createSession(userId, {}),
-      (cause) => new LuciaCreateSessionError(cause),
-    ),
-    TE.map((session) => lucia.createSessionCookie(session.id)),
-    TE.map((cookie) => cookie.serialize()),
-  );
+    pipe(
+      TE.tryCatch(
+        () => lucia.createSession(userId, {}),
+        (cause) => new LuciaCreateSessionError(cause),
+      ),
+      TE.map((session) => lucia.createSessionCookie(session.id)),
+      TE.map((cookie) => cookie.serialize()),
+    );
 
 type SetupAuthService = (params: SetupAuthServiceParams) => AuthService;
 

@@ -2,7 +2,7 @@ import { describe, expect, it } from "bun:test";
 import { setupUsersService } from "./service";
 import { UserNotFoundError, UserWithThisNameAlreadyExistsError } from "./model";
 import { DrizzleError } from "drizzle-orm";
-import { pipe, TE } from "@/shared/fp-ts";
+import { TE, pipe } from "@/shared/fp-ts";
 import { invoke, throws } from "@/shared/tasks";
 import { database, usersFindFirst, values } from "@/mocks/database";
 import { mockUser, name } from "@/mocks/user";

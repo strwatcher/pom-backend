@@ -1,5 +1,5 @@
 import { FullUser } from "@/resources/users/model";
-import { B, pipe, RTE, TE, E, constant } from "@/shared/fp-ts";
+import { B, E, RTE, TE, constant, pipe } from "@/shared/fp-ts";
 import {
   PasswordGenerationError,
   PasswordIsIncorrectError,

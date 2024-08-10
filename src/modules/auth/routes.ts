@@ -1,13 +1,13 @@
 import Elysia from "elysia";
 import { authServiceProvider } from "./provider";
-import { authUserSchema } from "@/resources/users/model";
+import { authUserSchema } from "@/modules/users/model";
 import { handleValidationErrors } from "@/shared/errors/validation";
 import {
-  handleSignUpErrors,
   handleAuthSuccess,
   handleSignInErrors,
+  handleSignUpErrors,
 } from "./responses";
-import { pipe, TE } from "@/shared/fp-ts";
+import { TE, pipe } from "@/shared/fp-ts";
 
 export const auth = new Elysia()
   .use(authServiceProvider())

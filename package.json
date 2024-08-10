@@ -21,10 +21,20 @@
     "ts-pattern": "^5.2.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.9.0",
+    "@trivago/prettier-plugin-sort-imports": "^4.3.0",
     "@types/pg": "^8.11.6",
     "@unsplash/ts-namespace-import-plugin": "^1.0.0",
     "bun-types": "latest",
-    "drizzle-kit": "^0.23.0"
+    "drizzle-kit": "^0.23.0",
+    "eslint": "9.x",
+    "globals": "^15.9.0",
+    "prettier": "^3.3.3",
+    "typescript-eslint": "^8.0.1"
   },
-  "module": "src/index.js"
+  "module": "src/index.js",
+  "type": "module",
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
 }

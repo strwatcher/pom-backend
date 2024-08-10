@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
-import { createLuciaSession, LuciaCreateSessionError } from "../service";
-import { pipe, T, TE } from "@/shared/fp-ts";
+import { LuciaCreateSessionError, createLuciaSession } from "../service";
+import { T, TE, pipe } from "@/shared/fp-ts";
 import { invoke, throws } from "@/shared/tasks";
 import {
   createSession,

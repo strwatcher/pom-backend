@@ -1,8 +1,8 @@
 import Elysia from "elysia";
 import { lucia } from "./lib/lucia";
-import { setupAuthService, SetupAuthServiceParams } from "./service";
+import { setupAuthService } from "./service";
 import { usersServiceProvider } from "../users/provider";
-import { createId, createIdProvider } from "@/shared/id";
+import { createIdProvider } from "@/shared/id";
 import { passwordServiceProvider } from "@/shared/password";
 
 export const luciaProvider = () => {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
-import { pipe, TE } from "@/shared/fp-ts";
+import { TE, pipe } from "@/shared/fp-ts";
 import { setupAuthService } from "../service";
-import { setupUsersService } from "@/resources/users/service";
+import { setupUsersService } from "@/modules/users/service";
 import { database, usersFindFirst } from "@/mocks/database";
 import { mockUser } from "@/mocks/user";
 import { lucia, mockSessionCookieSerialized } from "@/mocks/session";
@@ -12,7 +12,7 @@ import { setupPasswordService } from "@/shared/password/service";
 import {
   UserNotFoundError,
   UserWithThisNameAlreadyExistsError,
-} from "@/resources/users/model";
+} from "@/modules/users/model";
 
 describe("Sign up", () => {
   const passwordService = setupPasswordService({ hash: hashFunction, verify });

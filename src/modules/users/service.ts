@@ -3,11 +3,11 @@ import {
   CreateUserDto,
   FullUser,
   UserNotFoundError,
-  users,
   UserWithThisNameAlreadyExistsError,
+  users,
 } from "./model";
 import { DrizzleError } from "drizzle-orm";
-import { B, pipe, RTE, TE } from "@/shared/fp-ts";
+import { B, RTE, TE, pipe } from "@/shared/fp-ts";
 import { isValuesSet } from "@/shared/guards/is-value-set";
 
 type GetUserByNameFullParams = {

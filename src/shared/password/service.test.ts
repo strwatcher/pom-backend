@@ -1,8 +1,8 @@
 import { hashFunction, verify } from "@/mocks/password";
-import { FullUser } from "@/resources/users/model";
-import { pipe, T, TE } from "@/shared/fp-ts";
+import { FullUser } from "@/modules/users/model";
+import { T, TE, pipe } from "@/shared/fp-ts";
 import { invoke, throws } from "@/shared/tasks";
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import {
   PasswordGenerationError,
   PasswordIsIncorrectError,
