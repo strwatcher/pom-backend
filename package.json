@@ -15,6 +15,7 @@
     "drizzle-orm": "^0.32.1",
     "drizzle-typebox": "^0.1.1",
     "elysia": "latest",
+    "eslint-config-prettier": "^9.1.0",
     "fp-ts": "^2.16.9",
     "lucia": "^3.2.0",
     "pg": "^8.12.0",
@@ -28,6 +29,7 @@
     "bun-types": "latest",
     "drizzle-kit": "^0.23.0",
     "eslint": "9.x",
+    "eslint-plugin-prettier": "^5.2.1",
     "globals": "^15.9.0",
     "prettier": "^3.3.3",
     "typescript-eslint": "^8.0.1"
