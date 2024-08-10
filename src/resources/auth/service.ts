@@ -1,73 +1,117 @@
-import { Database } from "@/shared/database/drizzle";
-import { Lucia } from "lucia";
 import {
   AuthUserDto,
+  UserNotFoundError,
   UserWithThisNameAlreadyExistsError,
-} from "../users/model";
+} from "@/resources/users/model";
+import { pipe, RTE, TE } from "@/shared/fp-ts";
+import { DrizzleError } from "drizzle-orm";
 import { UsersService } from "../users/service";
-import { createId } from "@paralleldrive/cuid2";
-import { SerializedSessionCookie } from "./model";
+import { Lucia } from "lucia";
 import {
-  createLuciaSession,
-  generatePasswordHash,
-  verifyPassword,
-} from "./lib";
-import { B, E, pipe, RTE, TE } from "@/shared/fp-ts";
+  PasswordGenerationError,
+  PasswordIsIncorrectError,
+  PasswordVerificationError,
+} from "@/shared/password/model";
+import { PasswordService } from "@/shared/password/service";
+import { CreateId } from "@/shared/id";
 
-type AuthParams = {
-  database: Database;
-  lucia: Lucia;
+export type AuthLucia = Pick<Lucia, "createSession" | "createSessionCookie">;
+
+type AuthFullParams = {
   body: AuthUserDto;
 
+  lucia: AuthLucia;
   usersService: UsersService;
+  passwordService: PasswordService;
+  createId: CreateId;
 };
 
-const signUp: RTE.ReaderTaskEither<
-  AuthParams,
-  Error,
-  SerializedSessionCookie
-> = ({ lucia, database, body, usersService }) =>
-    pipe(
-      usersService.isNameAlreadyTaken({ database, name: body.name }),
-      TE.flatMap<boolean, Error, string>(
-        pipe(
-          B.matchW(
-            () =>
-              pipe(
-                generatePasswordHash({
-                  password: body.password,
-                  hashFunction: Bun.password.hash,
-                }),
-                TE.flatMap<string, Error, string>((password) =>
-                  usersService.createUser({
-                    database,
-                    createUserDto: { ...body, password, id: createId() },
-                  }),
-                ),
-                TE.flatMap<string, Error, string>((userId) =>
-                  createLuciaSession({ userId, lucia }),
-                ),
-              ),
-            () =>
-              TE.fromEither(
-                E.left(new UserWithThisNameAlreadyExistsError(body.name)),
-              ),
-          ),
-        ),
-      ),
-    );
+type AuthParams = Pick<AuthFullParams, "body">;
 
-const signIn: RTE.ReaderTaskEither<AuthParams, Error, string> = ({
-  usersService,
-  body,
-  database,
-  lucia,
-}) =>
+type SerializedSessionCookie = string;
+
+export type AuthService = {
+  signUp: RTE.ReaderTaskEither<
+    AuthParams,
+    | PasswordGenerationError
+    | UserWithThisNameAlreadyExistsError
+    | DrizzleError
+    | LuciaCreateSessionError,
+    SerializedSessionCookie
+  >;
+  signIn: RTE.ReaderTaskEither<
+    AuthParams,
+    | UserNotFoundError
+    | DrizzleError
+    | PasswordVerificationError
+    | PasswordIsIncorrectError,
+    SerializedSessionCookie
+  >;
+};
+
+export type SetupAuthServiceParams = {
+  lucia: AuthLucia;
+  usersService: UsersService;
+  passwordService: PasswordService;
+  createId: CreateId;
+};
+
+export class LuciaCreateSessionError extends Error {
+  constructor(cause: unknown) {
+    super(String(cause));
+    this.name = "LuciaCreateSessionError";
+  }
+}
+
+type CreateSessionParams = {
+  userId: string;
+  lucia: AuthLucia;
+};
+
+export const createLuciaSession: RTE.ReaderTaskEither<
+  CreateSessionParams,
+  LuciaCreateSessionError,
+  string
+> = ({ lucia, userId }) =>
   pipe(
-    usersService.getUserByName({ name: body.name, database }),
+    TE.tryCatch(
+      () => lucia.createSession(userId, {}),
+      (cause) => new LuciaCreateSessionError(cause),
+    ),
+    TE.map((session) => lucia.createSessionCookie(session.id)),
+    TE.map((cookie) => cookie.serialize()),
+  );
+
+type SetupAuthService = (params: SetupAuthServiceParams) => AuthService;
+
+const signUp = ({
+  usersService,
+  passwordService,
+  lucia,
+  createId,
+  body,
+}: AuthFullParams) =>
+  pipe(
+    passwordService.generatePasswordHash({ password: body.password }),
+    TE.flatMap((password) =>
+      usersService.createUser({
+        createUserDto: { ...body, password, id: createId() },
+      }),
+    ),
+
+    TE.flatMap((userId) => createLuciaSession({ userId, lucia })),
+  );
+
+const signIn = ({
+  usersService,
+  passwordService,
+  body,
+  lucia,
+}: AuthFullParams) =>
+  pipe(
+    usersService.getUserByName({ name: body.name }),
     TE.flatMap((user) =>
-      verifyPassword({
-        verify: Bun.password.verify,
+      passwordService.verifyPassword({
         password: body.password,
         user,
       }),
@@ -75,7 +119,7 @@ const signIn: RTE.ReaderTaskEither<AuthParams, Error, string> = ({
     TE.flatMap((user) => createLuciaSession({ lucia, userId: user.id })),
   );
 
-export const authService = {
-  signUp,
-  signIn,
-};
+export const setupAuthService: SetupAuthService = (injection) => ({
+  signUp: ({ body }) => signUp({ ...injection, body }),
+  signIn: ({ body }) => signIn({ ...injection, body }),
+});

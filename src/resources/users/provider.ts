@@ -1,5 +1,13 @@
+import { databaseProvider } from "@/shared/database/drizzle";
 import Elysia from "elysia";
-import { usersService } from "./service";
+import { setupUsersService } from "./service";
 
 export const usersServiceProvider = () =>
-  new Elysia().decorate("usersService", usersService);
+  new Elysia()
+    .use(databaseProvider())
+    .derive(async ({ database }) => {
+      return {
+        usersService: setupUsersService({ database }),
+      };
+    })
+    .as("plugin");

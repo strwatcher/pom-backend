@@ -1,21 +1,24 @@
+import { hashFunction, verify } from "@/mocks/password";
+import { FullUser } from "@/resources/users/model";
+import { pipe, T, TE } from "@/shared/fp-ts";
+import { invoke, throws } from "@/shared/tasks";
+import { describe, it, expect } from "bun:test";
 import {
-  generatePasswordHash,
   PasswordGenerationError,
   PasswordIsIncorrectError,
   PasswordVerificationError,
-  verifyPassword,
-} from "./password";
-import { FullUser } from "@/resources/users/model";
-import { throws } from "@/shared/errors/throws";
-import { pipe, T, TE } from "@/shared/fp-ts";
-import { invoke } from "@/shared/tasks/invoke";
-import { mock, describe, it, expect } from "bun:test";
+} from "./model";
+import { setupPasswordService } from "./service";
 
-const hashFunction = mock();
-const verify = mock();
+describe("Password service", () => {
+  const passwordService = setupPasswordService({
+    hash: hashFunction,
+    verify,
+  });
+  const user: FullUser = { password: "test-hash", name: "test", id: "0" };
+  const hashParams = { password: "test" } as const;
+  const verifyParams = { password: "test", user } as const;
 
-describe("Password hash generation", () => {
-  const hashParams = { password: "test", hashFunction } as const;
   it("Should use hash generator function and return string", async () => {
     hashFunction.mockImplementationOnce(
       async (password: string) => `${password}-hash`,
@@ -23,7 +26,7 @@ describe("Password hash generation", () => {
 
     expect(
       await pipe(
-        generatePasswordHash(hashParams),
+        passwordService.generatePasswordHash(hashParams),
         TE.fold(throws, (hash) => T.of(hash)),
         invoke,
       ),
@@ -34,20 +37,18 @@ describe("Password hash generation", () => {
     hashFunction.mockImplementationOnce(throws);
 
     expect(
-      pipe(generatePasswordHash(hashParams), TE.getOrElseW(throws)),
+      pipe(
+        passwordService.generatePasswordHash(hashParams),
+        TE.getOrElseW(throws),
+      ),
     ).toThrowError(PasswordGenerationError);
   });
-});
-
-describe("Password hash verification", () => {
-  const user: FullUser = { password: "test-hash", name: "test", id: "0" };
-  const verifyParams = { password: "test", user, verify } as const;
 
   it("Should use verify function and return user from args", async () => {
     verify.mockImplementationOnce(T.of(true));
     expect(
       await pipe(
-        verifyPassword(verifyParams),
+        passwordService.verifyPassword(verifyParams),
         TE.fold(throws, (user) => T.of(user)),
         invoke,
       ),
@@ -57,14 +58,16 @@ describe("Password hash verification", () => {
   it("Should throws an PasswordIsIncorrectError if verification is not successful", () => {
     verify.mockImplementationOnce(T.of(false));
     expect(
-      pipe(verifyPassword(verifyParams), TE.getOrElseW(throws)),
+      pipe(passwordService.verifyPassword(verifyParams), TE.getOrElseW(throws)),
     ).toThrowError(PasswordIsIncorrectError);
   });
 
   it("Should throws PasswordVerificationError if verification fails", async () => {
-    verify.mockImplementationOnce(throws);
+    verify.mockImplementationOnce(() => {
+      throw "";
+    });
     expect(
-      pipe(verifyPassword(verifyParams), TE.getOrElseW(throws)),
+      pipe(passwordService.verifyPassword(verifyParams), TE.getOrElseW(throws)),
     ).toThrowError(PasswordVerificationError);
   });
 });

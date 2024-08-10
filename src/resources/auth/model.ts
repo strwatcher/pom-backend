@@ -11,5 +11,3 @@ export const sessions = pgTable("sessions", {
     mode: "date",
   }).notNull(),
 });
-
-export type SerializedSessionCookie = string;

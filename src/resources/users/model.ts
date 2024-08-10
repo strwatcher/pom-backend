@@ -1,10 +1,9 @@
-import { createId } from "@paralleldrive/cuid2";
 import { pgTable, text, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-typebox";
 import { t } from "elysia";
 
 export const users = pgTable("users", {
-  id: text("id").primaryKey().$defaultFn(createId),
+  id: text("id").primaryKey(),
   name: varchar("name", { length: 30 }).notNull().unique(),
   password: text("password").notNull(),
 });
