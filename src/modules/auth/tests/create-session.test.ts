@@ -1,5 +1,5 @@
-import { createLuciaSession } from '../auth.service';
 import { LuciaCreateSessionError } from '../errors';
+import { createLuciaSession } from '../services/auth';
 import { createSession, lucia, mockSessionCookieSerialized } from '@/mocks/session';
 import { T, TE, pipe } from '@/shared/fp-ts';
 import { invoke, throws } from '@/shared/tasks';

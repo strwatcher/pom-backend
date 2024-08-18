@@ -1,5 +1,5 @@
-import { checkAuthService } from '../check-auth.service';
 import { AccessDeniedError } from '../errors';
+import { checkAuthService } from '../services/check-auth';
 import { mockCookie } from '@/mocks/cookie';
 import { mockGetHeaders, mockPostHeaders } from '@/mocks/headers';
 import {

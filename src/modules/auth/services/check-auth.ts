@@ -1,4 +1,4 @@
-import { AccessDeniedError } from './errors';
+import { AccessDeniedError } from '../errors';
 import { B, O, pipe, TE } from '@/shared/fp-ts';
 import { invoke, throws } from '@/shared/tasks';
 import { Cookie } from 'elysia';

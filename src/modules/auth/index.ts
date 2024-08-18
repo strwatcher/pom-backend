@@ -1,8 +1,8 @@
 import { usersServiceProvider } from '../users/provider';
-import { setupAuthService } from './auth.service';
-import { checkAuthService } from './check-auth.service';
 import { lucia } from './lib/lucia';
 import { handleAuthSuccess, handleSignOutSuccess } from './responses';
+import { setupAuthService } from './services/auth';
+import { checkAuthService } from './services/check-auth';
 import { authUserSchema } from '@/modules/users/model';
 import { handleApiError } from '@/shared/errors/base';
 import { TE, pipe } from '@/shared/fp-ts';

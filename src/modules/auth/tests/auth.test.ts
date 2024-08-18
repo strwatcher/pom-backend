@@ -1,5 +1,5 @@
-import { setupAuthService } from '../auth.service';
 import { AccessDeniedError, LuciaInvalidateSessionError } from '../errors';
+import { setupAuthService } from '../services/auth';
 import { mockCookie } from '@/mocks/cookie';
 import { database, usersFindFirst } from '@/mocks/database';
 import { mockGetHeaders } from '@/mocks/headers';

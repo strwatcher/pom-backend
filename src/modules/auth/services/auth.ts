@@ -1,6 +1,6 @@
-import { UsersService } from '../users/service';
-import { AccessDeniedError, LuciaCreateSessionError, LuciaInvalidateSessionError } from './errors';
+import { AccessDeniedError, LuciaCreateSessionError, LuciaInvalidateSessionError } from '../errors';
 import { AuthUserDto } from '@/modules/users/model';
+import { UsersService } from '@/modules/users/service';
 import { BaseApiError } from '@/shared/errors/base';
 import { O, RTE, TE, pipe } from '@/shared/fp-ts';
 import { CreateId } from '@/shared/id';

@@ -1,4 +1,4 @@
-import { sessions } from '../auth.model';
+import { sessions } from '@/modules/auth/model';
 import { UserAttributes, users } from '@/modules/users/model';
 import { db } from '@/shared/database/drizzle';
 import { DrizzlePostgreSQLAdapter } from '@lucia-auth/adapter-drizzle';
