@@ -38,3 +38,15 @@ export const handleAuthSuccess = (sessionCookie: string) =>
             headers: { 'Set-Cookie': sessionCookie },
         }),
     );
+
+export const handleSignOutErrors = (error: Error) =>
+    T.of(
+        Response.json(
+            {
+                error: error.message,
+            },
+            { status: 400 },
+        ),
+    );
+
+export const handleSignOutSuccess = () => T.of(Response.json(null, { status: 200 }));

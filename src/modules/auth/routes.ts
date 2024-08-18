@@ -1,5 +1,11 @@
 import { authServiceProvider } from './provider';
-import { handleAuthSuccess, handleSignInErrors, handleSignUpErrors } from './responses';
+import {
+    handleAuthSuccess,
+    handleSignInErrors,
+    handleSignOutErrors,
+    handleSignOutSuccess,
+    handleSignUpErrors,
+} from './responses';
 import { authUserSchema } from '@/modules/users/model';
 import { handleValidationErrors } from '@/shared/errors/validation';
 import { TE, pipe } from '@/shared/fp-ts';
@@ -29,5 +35,11 @@ export const auth = new Elysia()
                 {
                     body: authUserSchema,
                 },
+            )
+            .post('/sign-out', ({ authService, ...context }) =>
+                pipe(
+                    authService.signOut(context),
+                    TE.fold(handleSignOutErrors, handleSignOutSuccess),
+                ),
             ),
     );

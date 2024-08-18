@@ -1,10 +1,11 @@
 import { UsersService } from '../users/service';
+import { SessionIsNotExistError } from './check-auth.model';
 import {
     AuthUserDto,
     UserNotFoundError,
     UserWithThisNameAlreadyExistsError,
 } from '@/modules/users/model';
-import { RTE, TE, pipe } from '@/shared/fp-ts';
+import { O, RTE, TE, pipe } from '@/shared/fp-ts';
 import { CreateId } from '@/shared/id';
 import {
     PasswordGenerationError,
@@ -13,9 +14,17 @@ import {
 } from '@/shared/password/model';
 import { PasswordService } from '@/shared/password/service';
 import { DrizzleError } from 'drizzle-orm';
+import { Cookie } from 'elysia';
 import { Lucia } from 'lucia';
 
-export type AuthLucia = Pick<Lucia, 'createSession' | 'createSessionCookie'>;
+export type AuthLucia = Pick<
+    Lucia,
+    | 'createSession'
+    | 'createSessionCookie'
+    | 'invalidateSession'
+    | 'readSessionCookie'
+    | 'createBlankSessionCookie'
+>;
 
 type AuthFullParams = {
     body: AuthUserDto;
@@ -27,6 +36,14 @@ type AuthFullParams = {
 };
 
 type AuthParams = Pick<AuthFullParams, 'body'>;
+
+type SignOutFullParams = {
+    lucia: AuthLucia;
+    request: Request;
+    cookie: Record<string, Cookie<string | undefined>>;
+};
+
+type SignOutParams = Pick<SignOutFullParams, 'request' | 'cookie'>;
 
 type SerializedSessionCookie = string;
 
@@ -44,6 +61,8 @@ export type AuthService = {
         UserNotFoundError | DrizzleError | PasswordVerificationError | PasswordIsIncorrectError,
         SerializedSessionCookie
     >;
+
+    signOut: RTE.ReaderTaskEither<SignOutParams, SessionIsNotExistError, void>;
 };
 
 export type SetupAuthServiceParams = {
@@ -57,6 +76,12 @@ export class LuciaCreateSessionError extends Error {
     constructor(cause: unknown) {
         super(String(cause));
         this.name = 'LuciaCreateSessionError';
+    }
+}
+
+export class LuciaInvalidateSessionError extends Error {
+    constructor() {
+        super('Lucia invalidation error');
     }
 }
 
@@ -105,7 +130,31 @@ const signIn = ({ usersService, passwordService, body, lucia }: AuthFullParams) 
         TE.flatMap((user) => createLuciaSession({ lucia, userId: user.id })),
     );
 
+const signOut = ({ lucia, request, cookie }: SignOutFullParams) =>
+    pipe(
+        O.fromNullable(request.headers.get('Cookie')),
+        O.flatMap((cookie) => pipe(lucia.readSessionCookie(cookie), O.fromNullable)),
+        TE.fromOption(() => new SessionIsNotExistError()),
+        TE.flatMap((sessionId) =>
+            TE.tryCatch(
+                () => lucia.invalidateSession(sessionId),
+                () => new LuciaInvalidateSessionError(),
+            ),
+        ),
+        TE.flatMap(() => TE.of(lucia.createBlankSessionCookie())),
+        TE.flatMap((sessionCookie) =>
+            TE.of(
+                cookie[sessionCookie.name].set({
+                    value: sessionCookie.value,
+                    ...sessionCookie.attributes,
+                }),
+            ),
+        ),
+        TE.map(() => {}),
+    );
+
 export const setupAuthService: SetupAuthService = (injection) => ({
     signUp: ({ body }) => signUp({ ...injection, body }),
     signIn: ({ body }) => signIn({ ...injection, body }),
+    signOut: ({ request, cookie }) => signOut({ ...injection, request, cookie }),
 });

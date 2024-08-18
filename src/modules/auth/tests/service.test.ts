@@ -10,8 +10,9 @@ import { TE, pipe } from '@/shared/fp-ts';
 import { setupPasswordService } from '@/shared/password/service';
 import { invoke, throws } from '@/shared/tasks';
 import { describe, expect, it } from 'bun:test';
+import { Cookie } from 'elysia';
 
-describe('Sign up', () => {
+const setup = () => {
     const passwordService = setupPasswordService({ hash: hashFunction, verify });
     const usersService = setupUsersService({ database });
     const authService = setupAuthService({
@@ -21,6 +22,11 @@ describe('Sign up', () => {
         createId,
     });
 
+    return authService;
+};
+
+describe('Sign up', () => {
+    const authService = setup();
     it('Should return serialized Cookie in success case', async () => {
         usersFindFirst.mockReturnValueOnce(Promise.resolve(undefined));
 
@@ -49,14 +55,7 @@ describe('Sign up', () => {
 });
 
 describe('Sign in', () => {
-    const passwordService = setupPasswordService({ hash: hashFunction, verify });
-    const usersService = setupUsersService({ database });
-    const authService = setupAuthService({
-        lucia,
-        usersService,
-        passwordService,
-        createId,
-    });
+    const authService = setup();
 
     it('Should return serialized Cookie in success case', async () => {
         usersFindFirst.mockReturnValueOnce(Promise.resolve(mockUser));
@@ -81,5 +80,24 @@ describe('Sign in', () => {
                 TE.getOrElseW(throws),
             ),
         ).toThrowError(UserNotFoundError);
+    });
+});
+
+describe('Sign out', () => {
+    const authService = setup();
+
+    it('Should return void in success case', async () => {
+        expect(
+            pipe(
+                authService.signOut({
+                    request: {
+                        headers: new Headers({ Cookie: mockSessionCookieSerialized }),
+                    } as Request,
+                    cookie: { auth: new Cookie('auth', {}) },
+                }),
+                TE.getOrElseW(throws),
+                invoke,
+            ),
+        ).toBeEmpty();
     });
 });
