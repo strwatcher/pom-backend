@@ -8,12 +8,12 @@ export class AccessDeniedError extends BaseApiError {
 
 export class LuciaCreateSessionError extends BaseApiError {
     constructor(cause: unknown) {
-        super(400, String(cause));
+        super(500, String(cause));
     }
 }
 
 export class LuciaInvalidateSessionError extends BaseApiError {
     constructor() {
-        super(400, 'Lucia invalidation error');
+        super(500, 'Lucia invalidation error');
     }
 }
