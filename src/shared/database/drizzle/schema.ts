@@ -1,2 +1,2 @@
-export { users } from '@/resources/users/model';
-export { sessions } from '@/resources/auth/model';
+export { users } from '@/modules/users/model';
+export { sessions } from '@/modules/auth/auth.model';

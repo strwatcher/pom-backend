@@ -1,10 +1,12 @@
-import { auth } from './modules/auth/routes';
+import { auth } from '@/modules/auth/routes';
+import { progress } from '@/modules/progress';
 import swagger from '@elysiajs/swagger';
 import { Elysia } from 'elysia';
 
 const app = new Elysia()
     .use(swagger())
     .use(auth)
+    .use(progress)
     .get('/', () => 'Hello')
     .listen(3000);
 

@@ -1,6 +1,6 @@
 import { usersServiceProvider } from '../users/provider';
+import { setupAuthService } from './auth.service';
 import { lucia } from './lib/lucia';
-import { setupAuthService } from './service';
 import { createIdProvider } from '@/shared/id';
 import { passwordServiceProvider } from '@/shared/password';
 import Elysia from 'elysia';

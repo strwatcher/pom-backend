@@ -4,7 +4,7 @@ import {
     PasswordVerificationError,
 } from './model';
 import { HashPassword, VerifyPassword } from './utils';
-import { FullUser } from '@/resources/users/model';
+import { FullUser } from '@/modules/users/model';
 import { B, E, RTE, TE, constant, pipe } from '@/shared/fp-ts';
 
 type GeneratePasswordHashFullParams = {

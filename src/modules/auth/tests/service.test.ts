@@ -1,4 +1,4 @@
-import { setupAuthService } from '../service';
+import { setupAuthService } from '../auth.service';
 import { database, usersFindFirst } from '@/mocks/database';
 import { createId } from '@/mocks/id';
 import { hashFunction, verify } from '@/mocks/password';
