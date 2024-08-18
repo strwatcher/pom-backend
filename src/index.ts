@@ -1,3 +1,4 @@
+import { handleUnhandledErrors } from './shared/errors/handle-unhandled';
 import { auth } from '@/modules/auth';
 import { progress } from '@/modules/progress';
 import swagger from '@elysiajs/swagger';
@@ -5,6 +6,7 @@ import { Elysia } from 'elysia';
 
 const app = new Elysia()
     .use(swagger())
+    .use(handleUnhandledErrors)
     .use(auth)
     .use(progress)
     .get('/', () => 'Hello')

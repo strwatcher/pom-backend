@@ -1,3 +1,4 @@
+import { mockUserWithoutPassword } from './user';
 import { mock } from 'bun:test';
 import { Cookie, Session } from 'lucia';
 
@@ -15,8 +16,11 @@ export const mockSessionCookieSerialized = `auth=${mockSessionId}`;
 export const createSession = mock().mockReturnValue(Promise.resolve(mockSession));
 export const createSessionCookie = mock().mockReturnValue(mockSessionCookie);
 export const createBlankSessionCookie = mock().mockReturnValue(mockSessionCookie);
-export const readSessionCookie = mock().mockReturnValue('sessionId');
-export const validateSession = mock();
+export const readSessionCookie = mock().mockReturnValue(mockSession);
+export const validateSession = mock().mockReturnValue({
+    user: mockUserWithoutPassword,
+    session: mockSession,
+});
 export const invalidateSession = mock().mockReturnValue(Promise.resolve());
 export const verifyRequestOrigin = mock().mockReturnValue(true);
 

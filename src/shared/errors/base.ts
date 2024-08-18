@@ -9,7 +9,7 @@ export class BaseApiError extends Error {
     }
 
     public toResponse() {
-        return Response.json({ message: this.message }, { status: this.status });
+        return Response.json({ error: this.message }, { status: this.status });
     }
 }
 

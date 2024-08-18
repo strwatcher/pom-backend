@@ -1,7 +1,12 @@
+import { BaseApiError } from './base';
 import { A, pipe } from '@/shared/fp-ts';
 import Elysia from 'elysia';
 
-export const handleValidationErrors = new Elysia().onError({ as: 'global' }, ({ error, code }) => {
+export const handleUnhandledErrors = new Elysia().onError({ as: 'global' }, ({ error, code }) => {
+    if (error instanceof BaseApiError) {
+        return error.toResponse();
+    }
+
     if (code === 'VALIDATION') {
         return Response.json(
             {
