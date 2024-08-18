@@ -3,15 +3,18 @@ import {
     SessionIsNotExistError,
     SessionIsNotValidError,
 } from './check-auth.model';
-import { luciaProvider } from './provider';
-import { B, O, pipe, T, TE } from '@/shared/fp-ts';
+import { B, O, pipe, TE } from '@/shared/fp-ts';
 import { invoke, throws } from '@/shared/tasks';
-import Elysia, { Cookie } from 'elysia';
-import { Lucia, Session, verifyRequestOrigin } from 'lucia';
+import { Cookie } from 'elysia';
+import { Lucia, Session } from 'lucia';
 
 type ForSignedOnlyParams = {
     request: Request;
-    lucia: Lucia;
+    lucia: Pick<
+        Lucia,
+        'readSessionCookie' | 'validateSession' | 'createBlankSessionCookie' | 'createSessionCookie'
+    >;
+    verifyRequestOrigin: (origin: string, hosts: string[]) => boolean;
     cookie: Record<string, Cookie<string | undefined>>;
 };
 
@@ -31,7 +34,7 @@ export const checkAuthService = {
                         ),
                         O.bind('isVerified', ({ originHeader, hostHeader }) =>
                             pipe(
-                                verifyRequestOrigin(originHeader, [hostHeader]),
+                                context.verifyRequestOrigin(originHeader, [hostHeader]),
                                 O.fromPredicate(Boolean),
                             ),
                         ),
@@ -84,10 +87,7 @@ export const checkAuthService = {
                     ),
                 ),
             ),
-            TE.fold(throws, (result) => T.of(result)),
+            TE.getOrElseW(throws),
             invoke,
         ),
 };
-
-export const forSignedOnly = () =>
-    new Elysia().use(luciaProvider()).derive(checkAuthService.forSignedOnly);

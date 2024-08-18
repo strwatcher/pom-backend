@@ -14,14 +14,17 @@ export const mockSessionCookieSerialized = `auth=${mockSessionId}`;
 
 export const createSession = mock().mockReturnValue(Promise.resolve(mockSession));
 export const createSessionCookie = mock().mockReturnValue(mockSessionCookie);
-export const readSessionCookie = mock().mockReturnValue('sessionId');
-export const invalidateSession = mock().mockReturnValue(Promise.resolve());
 export const createBlankSessionCookie = mock().mockReturnValue(mockSessionCookie);
+export const readSessionCookie = mock().mockReturnValue('sessionId');
+export const validateSession = mock();
+export const invalidateSession = mock().mockReturnValue(Promise.resolve());
+export const verifyRequestOrigin = mock().mockReturnValue(true);
 
 export const lucia = {
     createSession,
     createSessionCookie,
-    invalidateSession,
-    readSessionCookie,
     createBlankSessionCookie,
+    readSessionCookie,
+    validateSession,
+    invalidateSession,
 } as const;

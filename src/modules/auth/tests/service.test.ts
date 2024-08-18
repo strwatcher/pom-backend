@@ -88,7 +88,7 @@ describe('Sign out', () => {
 
     it('Should return void in success case', async () => {
         expect(
-            pipe(
+            await pipe(
                 authService.signOut({
                     request: {
                         headers: new Headers({ Cookie: mockSessionCookieSerialized }),
