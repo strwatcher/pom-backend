@@ -1,8 +1,9 @@
+import { BaseApiError } from '../errors/base';
 import {
     PasswordGenerationError,
     PasswordIsIncorrectError,
     PasswordVerificationError,
-} from './model';
+} from './errors';
 import { HashPassword, VerifyPassword } from './utils';
 import { FullUser } from '@/modules/users/model';
 import { B, E, RTE, TE, constant, pipe } from '@/shared/fp-ts';
@@ -23,12 +24,8 @@ type VerifyPasswordFullParams = {
 type VerifyPasswordParams = Pick<VerifyPasswordFullParams, 'user' | 'password'>;
 
 export type PasswordService = {
-    generatePasswordHash: RTE.ReaderTaskEither<GeneratePasswordHashParams, Error, string>;
-    verifyPassword: RTE.ReaderTaskEither<
-        VerifyPasswordParams,
-        PasswordVerificationError | PasswordIsIncorrectError,
-        FullUser
-    >;
+    generatePasswordHash: RTE.ReaderTaskEither<GeneratePasswordHashParams, BaseApiError, string>;
+    verifyPassword: RTE.ReaderTaskEither<VerifyPasswordParams, BaseApiError, FullUser>;
 };
 
 type SetupPasswordService = (params: {

@@ -1,19 +1,10 @@
 import { UsersService } from '../users/service';
-import { SessionIsNotExistError } from './check-auth.model';
-import {
-    AuthUserDto,
-    UserNotFoundError,
-    UserWithThisNameAlreadyExistsError,
-} from '@/modules/users/model';
+import { AccessDeniedError, LuciaCreateSessionError, LuciaInvalidateSessionError } from './errors';
+import { AuthUserDto } from '@/modules/users/model';
+import { BaseApiError } from '@/shared/errors/base';
 import { O, RTE, TE, pipe } from '@/shared/fp-ts';
 import { CreateId } from '@/shared/id';
-import {
-    PasswordGenerationError,
-    PasswordIsIncorrectError,
-    PasswordVerificationError,
-} from '@/shared/password/model';
 import { PasswordService } from '@/shared/password/service';
-import { DrizzleError } from 'drizzle-orm';
 import { Cookie } from 'elysia';
 import { Lucia } from 'lucia';
 
@@ -34,7 +25,6 @@ type AuthFullParams = {
     passwordService: PasswordService;
     createId: CreateId;
 };
-
 type AuthParams = Pick<AuthFullParams, 'body'>;
 
 type SignOutFullParams = {
@@ -42,27 +32,14 @@ type SignOutFullParams = {
     request: Request;
     cookie: Record<string, Cookie<string | undefined>>;
 };
-
 type SignOutParams = Pick<SignOutFullParams, 'request' | 'cookie'>;
 
 type SerializedSessionCookie = string;
 
 export type AuthService = {
-    signUp: RTE.ReaderTaskEither<
-        AuthParams,
-        | PasswordGenerationError
-        | UserWithThisNameAlreadyExistsError
-        | DrizzleError
-        | LuciaCreateSessionError,
-        SerializedSessionCookie
-    >;
-    signIn: RTE.ReaderTaskEither<
-        AuthParams,
-        UserNotFoundError | DrizzleError | PasswordVerificationError | PasswordIsIncorrectError,
-        SerializedSessionCookie
-    >;
-
-    signOut: RTE.ReaderTaskEither<SignOutParams, SessionIsNotExistError, void>;
+    signUp: RTE.ReaderTaskEither<AuthParams, BaseApiError, SerializedSessionCookie>;
+    signIn: RTE.ReaderTaskEither<AuthParams, BaseApiError, SerializedSessionCookie>;
+    signOut: RTE.ReaderTaskEither<SignOutParams, BaseApiError, void>;
 };
 
 export type SetupAuthServiceParams = {
@@ -72,29 +49,12 @@ export type SetupAuthServiceParams = {
     createId: CreateId;
 };
 
-export class LuciaCreateSessionError extends Error {
-    constructor(cause: unknown) {
-        super(String(cause));
-        this.name = 'LuciaCreateSessionError';
-    }
-}
-
-export class LuciaInvalidateSessionError extends Error {
-    constructor() {
-        super('Lucia invalidation error');
-    }
-}
-
 type CreateSessionParams = {
     userId: string;
     lucia: AuthLucia;
 };
 
-export const createLuciaSession: RTE.ReaderTaskEither<
-    CreateSessionParams,
-    LuciaCreateSessionError,
-    string
-> = ({ lucia, userId }) =>
+export const createLuciaSession = ({ lucia, userId }: CreateSessionParams) =>
     pipe(
         TE.tryCatch(
             () => lucia.createSession(userId, {}),
@@ -134,7 +94,7 @@ const signOut = ({ lucia, request, cookie }: SignOutFullParams) =>
     pipe(
         O.fromNullable(request.headers.get('Cookie')),
         O.flatMap((cookie) => pipe(lucia.readSessionCookie(cookie), O.fromNullable)),
-        TE.fromOption(() => new SessionIsNotExistError()),
+        TE.fromOption(() => new AccessDeniedError()),
         TE.flatMap((sessionId) =>
             TE.tryCatch(
                 () => lucia.invalidateSession(sessionId),

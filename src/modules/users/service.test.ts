@@ -1,11 +1,11 @@
-import { UserNotFoundError, UserWithThisNameAlreadyExistsError } from './model';
+import { UserNotFoundError, UserWithThisNameAlreadyExistsError } from './errors';
 import { setupUsersService } from './service';
 import { database, usersFindFirst, values } from '@/mocks/database';
 import { mockUser, name } from '@/mocks/user';
+import { DrizzleError } from '@/shared/database/drizzle/error';
 import { TE, pipe } from '@/shared/fp-ts';
 import { invoke, throws } from '@/shared/tasks';
 import { describe, expect, it } from 'bun:test';
-import { DrizzleError } from 'drizzle-orm';
 
 describe('Get user by name', () => {
     const usersService = setupUsersService({ database });
@@ -94,7 +94,7 @@ describe('Create user', () => {
     const usersService = setupUsersService({ database });
 
     it('Should return new user id in success case', async () => {
-        values.mockImplementationOnce(async () => {});
+        values.mockImplementationOnce(async () => { });
         usersFindFirst.mockReturnValueOnce(Promise.resolve(undefined));
         expect(
             await pipe(
@@ -106,7 +106,7 @@ describe('Create user', () => {
     });
 
     it('Should throw UserWithThisNameALreadyExistsError when user with this name already exists', async () => {
-        values.mockImplementationOnce(async () => {});
+        values.mockImplementationOnce(async () => { });
         usersFindFirst.mockReturnValueOnce(Promise.resolve(mockUser));
 
         expect(

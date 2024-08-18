@@ -2,7 +2,7 @@ import {
     PasswordGenerationError,
     PasswordIsIncorrectError,
     PasswordVerificationError,
-} from './model';
+} from './errors';
 import { setupPasswordService } from './service';
 import { hashFunction, verify } from '@/mocks/password';
 import { FullUser } from '@/modules/users/model';

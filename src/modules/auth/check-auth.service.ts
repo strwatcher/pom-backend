@@ -1,8 +1,4 @@
-import {
-    RequestOriginIsNotVerifiedError,
-    SessionIsNotExistError,
-    SessionIsNotValidError,
-} from './check-auth.model';
+import { AccessDeniedError } from './errors';
 import { B, O, pipe, TE } from '@/shared/fp-ts';
 import { invoke, throws } from '@/shared/tasks';
 import { Cookie } from 'elysia';
@@ -42,7 +38,7 @@ export const checkAuthService = {
                 () => O.some({}),
             ),
             O.fold(
-                () => TE.left(new RequestOriginIsNotVerifiedError()),
+                () => TE.left(new AccessDeniedError()),
                 () =>
                     pipe(
                         O.fromNullable(context.request.headers.get('Cookie')),
@@ -50,12 +46,12 @@ export const checkAuthService = {
                             pipe(context.lucia.readSessionCookie(sessionId), O.fromNullable),
                         ),
                         O.fold(
-                            () => TE.left(new SessionIsNotExistError()),
+                            () => TE.left(new AccessDeniedError()),
                             (sessionId) =>
                                 pipe(
                                     TE.tryCatch(
                                         async () => context.lucia.validateSession(sessionId),
-                                        () => new SessionIsNotValidError(),
+                                        () => new AccessDeniedError(),
                                     ),
                                 ),
                         ),

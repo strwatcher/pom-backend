@@ -20,15 +20,3 @@ export type User = Omit<FullUser, 'password'>;
 export type CreateUserDto = Required<typeof users.$inferInsert>;
 export type AuthUserDto = Omit<typeof users.$inferInsert, 'id'>;
 export type UserAttributes = Omit<User, 'id'>;
-
-export class UserWithThisNameAlreadyExistsError extends Error {
-    constructor(name: string) {
-        super(`User with name "${name}" already exists`);
-    }
-}
-
-export class UserNotFoundError extends Error {
-    constructor(name: string) {
-        super(`User with name "${name}" is not found`);
-    }
-}

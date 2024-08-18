@@ -1,14 +1,10 @@
-import {
-    CreateUserDto,
-    FullUser,
-    UserNotFoundError,
-    UserWithThisNameAlreadyExistsError,
-    users,
-} from './model';
+import { UserNotFoundError, UserWithThisNameAlreadyExistsError } from './errors';
+import { CreateUserDto, FullUser, users } from './model';
 import { Database } from '@/shared/database/drizzle/database';
+import { DrizzleError } from '@/shared/database/drizzle/error';
+import { BaseApiError } from '@/shared/errors/base';
 import { B, RTE, TE, pipe } from '@/shared/fp-ts';
 import { isValuesSet } from '@/shared/guards/is-value-set';
-import { DrizzleError } from 'drizzle-orm';
 
 type GetUserByNameFullParams = {
     database: Database;
@@ -23,19 +19,9 @@ type CreateUserFullParams = {
 type CreateUserParams = Pick<CreateUserFullParams, 'createUserDto'>;
 
 export type UsersService = {
-    getUserByName: RTE.ReaderTaskEither<
-        GetUserByNameParams,
-        DrizzleError | UserNotFoundError,
-        FullUser
-    >;
-
-    createUser: RTE.ReaderTaskEither<
-        CreateUserParams,
-        DrizzleError | UserWithThisNameAlreadyExistsError,
-        string
-    >;
-
-    isNameAlreadyTaken: RTE.ReaderTaskEither<GetUserByNameParams, DrizzleError, boolean>;
+    getUserByName: RTE.ReaderTaskEither<GetUserByNameParams, BaseApiError, FullUser>;
+    createUser: RTE.ReaderTaskEither<CreateUserParams, BaseApiError, string>;
+    isNameAlreadyTaken: RTE.ReaderTaskEither<GetUserByNameParams, BaseApiError, boolean>;
 };
 
 const getUserByName = ({ name, database }: GetUserByNameFullParams) =>
@@ -45,11 +31,7 @@ const getUserByName = ({ name, database }: GetUserByNameFullParams) =>
                 database.query.users.findFirst({
                     where: (users, { eq }) => eq(users.name, name),
                 }),
-            (cause) =>
-                new DrizzleError({
-                    message: `Error while trying to get user by name: ${name}`,
-                    cause,
-                }),
+            () => new DrizzleError(`Error while trying to get user by name: ${name}`),
         ),
     );
 
@@ -64,11 +46,7 @@ const createUser = ({ createUserDto, database }: CreateUserFullParams) =>
                 () =>
                     TE.tryCatch(
                         () => database.insert(users).values(createUserDto),
-                        (cause) =>
-                            new DrizzleError({
-                                message: `Error while trying to create user`,
-                                cause,
-                            }),
+                        () => new DrizzleError('Error while trying to create user'),
                     ),
                 () => TE.left(new UserWithThisNameAlreadyExistsError(createUserDto.name)),
             ),

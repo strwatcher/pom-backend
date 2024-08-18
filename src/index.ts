@@ -1,4 +1,4 @@
-import { auth } from '@/modules/auth/routes';
+import { auth } from '@/modules/auth';
 import { progress } from '@/modules/progress';
 import swagger from '@elysiajs/swagger';
 import { Elysia } from 'elysia';
